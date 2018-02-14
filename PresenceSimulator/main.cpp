@@ -14,7 +14,7 @@ INPUT makeInput(const KEYBDINPUT& ki)
    return i;
 }
 
-void hitKey(WORD vk, DWORD timeMsek = 100)
+void hitKey(WORD vk)
 {
    INPUT input[] =
    {
