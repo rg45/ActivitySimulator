@@ -96,7 +96,8 @@ struct Params
 std::ostream& operator << (std::ostream& output, const Params& params)
 {
    return std::cout
-      << "Key: " << "VK = 0x" << std::hex << params.key;
+      << "Key: " << "VK = 0x" << std::hex << params.key << "\n"
+      << "End Time: " << params.endTime;
 }
 
 char paramKey(const std::string& param)
@@ -117,25 +118,38 @@ T paramValue(const std::string& param)
    return param.size() > 3 ? parse<T>(param.substr(3)) : T();
 }
 
-Params parseCommandLine(int argc, const char* const* args)
+void parseCommandLineParam(Params& params, const std::string& token)
 {
-   Params params;
+   switch (paramKey(token))
+   {
+   case 'e':
+   case 'E':
+      params.endTime = makeGreater(paramValue<std::tm>(token), getLocalTime());
+      break;
 
+   case 'p':
+   case 'P': {
+         std::string token;
+         std::cout << "Input additional parameters (Ctrl+Z to end):\n> ";
+         while (std::cin >> token)
+         {
+            parseCommandLineParam(params, token);
+            std::cout << "> ";
+         }
+      }
+      break;
+
+   default:
+      throw std::invalid_argument("Unexpected command line parameter: " + std::string(token));
+   }
+}
+
+void parseCommandLine(Params& params, int argc, const char* const* args)
+{
    for (int i = 1; i < argc; ++i)
    {
-      switch (paramKey(args[i]))
-      {
-      case 'e':
-      case 'E':
-         params.endTime = makeGreater(paramValue<std::tm>(args[i]), getLocalTime());
-         break;
-
-      default:
-         throw std::invalid_argument("Unexpected command line parameter: " + std::string(args[i]));
-      }
+      parseCommandLineParam(params, args[i]);
    }
-
-   return params;
 }
 
 void simulateKeyActivity(WORD key)
@@ -148,11 +162,6 @@ void simulateKeyActivity(WORD key)
 
 void run(const Params& params)
 {
-   std::cout
-      << params << std::endl
-      << "Started: " << getLocalTime() << std::endl
-      << "End Time: " << params.endTime << std::endl;
-
    for (;;)
    {
       if (params.endTime != std::tm {} && getLocalTime() >= params.endTime)
@@ -160,7 +169,6 @@ void run(const Params& params)
 
       simulateKeyActivity(params.key);
    }
-   std::cout << "Finished: " << getLocalTime() << std::endl;
 }
 
 
@@ -172,7 +180,13 @@ int main(int argc, const char* const* args)
 {
    try
    {
-      run(parseCommandLine(argc, args));
+      std::cout << "Started: " << getLocalTime() << std::endl;
+
+      Params params;
+      parseCommandLine(params, argc, args);
+      std::cout << params << std::endl;
+      run(params);
+      std::cout << "Finished: " << getLocalTime() << std::endl;
    }
    catch (std::exception& ex)
    {
