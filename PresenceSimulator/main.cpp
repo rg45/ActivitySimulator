@@ -130,8 +130,8 @@ void parseCommandLineParam(Params& params, const std::string& token)
    case 'p':
    case 'P': {
          std::string token;
-         std::cout << "Input additional parameters (Ctrl+Z to end):\n> ";
-         while (std::cin >> token)
+         std::cout << "Input additional parameters ('/' or Ctrl+Z to end):\n> ";
+         while (std::cin >> token && token != "/")
          {
             parseCommandLineParam(params, token);
             std::cout << "> ";
