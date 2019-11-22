@@ -157,7 +157,7 @@ void simulateKeyActivity(WORD key)
    hitKey(key);
    Sleep(100);
    hitKey(key);
-   Sleep(3000);
+   Sleep(30000);
 }
 
 void run(const Params& params)
